@@ -30,4 +30,4 @@ ports:
 map:
   - config:rw
 
-image: "docker.io/nestmtx/arm64"
+image: "nestmtx/arm64"
