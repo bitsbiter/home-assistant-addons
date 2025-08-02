@@ -1,33 +1,32 @@
 name: "NestMTX"
-#version: "1.0.0"
+version: "1.0.1"
 slug: "nestmtx"
-description: "Self-hosted UI and HLS output for Google Nest cam - TEST"
-startup: services
-boot: auto
-ingress: false
-panel_icon: mdi:video
-host_network: true
-
+description: "Serve Nest camera streams as RTSP, HLS, or MJPEG"
+url: "https://github.com/bitsbiter/home-assistant-addons/tree/main/nestmtx"
 arch:
   - aarch64
-
-options:
-  google_project_id: ""
-  client_id: ""
-  client_secret: ""
-  refresh_token: ""
-
-schema:
-  google_project_id: str
-  client_id: str
-  client_secret: str
-  refresh_token: str
-
-ports:
-  3000/tcp: 3000
-  8888/tcp: 8888
-
+  - amd64
+init: true
 map:
-  - config:rw
+  - "share:rw"
+ports:
+  8554/tcp: 8554
+  8555/tcp: 8555
+  8556/tcp: 8556
+ports_description:
+  8554/tcp: "RTSP stream output"
+  8555/tcp: "Web/HLS stream output"
+  8556/tcp: "MJPEG stream output"
+options:
+  gcp_project_id: ""
+  gcp_client_id: ""
+  gcp_client_secret: ""
+  gcp_token_path: "/share/nestmtx/google_token.json"
+  stream_url: ""
+schema:
+  gcp_project_id: "str"
+  gcp_client_id: "str"
+  gcp_client_secret: "str"
+  gcp_token_path: "str"
+  stream_url: "str"
 
-image: "nestmtx/arm64"
