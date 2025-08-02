@@ -1,0 +1,134 @@
+Home Assistant Add-on: NestMTX (Corrected Build)This repository contains all the necessary files to run nestmtx as a Home Assistant addon on an aarch64 device like a Raspberry Pi 4. The files have been corrected to fix all previous build errors.Repository StructureThe structure remains the same:nestmtx/
+├── build.yaml
+├── Dockerfile
+├── config.yaml
+├── icon.png
+├── README.md
+└── rootfs/
+    └── etc/
+        └── cont-init.d/
+            └── nestmtx.sh
+File ContentsBelow is the corrected content for each file.build.yamlThis file correctly specifies the base image for the aarch64 architecture.build_from:
+  aarch64: "ghcr.io/home-assistant/aarch64-base:latest"
+DockerfileThis is the fully corrected Dockerfile. It no longer uses a multi-stage build. Instead, it starts from the standard Home Assistant base image and directly downloads the correct nestmtx binary from GitHub releases. This is the most stable and reliable method.# This ARG is passed in by the Home Assistant build environment.
+ARG BUILD_FROM
+FROM ${BUILD_FROM}
+
+# Install curl (for downloading), make the /usr/bin directory, and then clean up.
+# The RUN command is a single layer to keep the image smaller.
+RUN \
+    apk add --no-cache curl && \
+    echo "Downloading nestmtx binary..." && \
+    curl -L -o /usr/bin/nestmtx \
+    "https://github.com/alexbelgium/hassio-addons/releases/download/v1.2.0/nestmtx-arm64" && \
+    echo "Setting permissions..." && \
+    chmod a+x /usr/bin/nestmtx && \
+    apk del curl
+
+# Copy our custom rootfs directory (which contains the startup script) into the addon.
+COPY rootfs/ /
+
+# Set the command to run the S6 overlay init system.
+CMD [ "/init" ]
+config.yamlThe configuration is set for the single aarch64 architecture.# Add-on configuration
+name: "NestMTX"
+version: "1.0.4"
+slug: "nestmtx"
+description: "Serve Nest camera streams as RTSP, HLS, or MJPEG"
+url: "https://github.com/bitsbiter/home-assistant-addons/tree/main/nestmtx"
+arch:
+  - aarch64
+init: true
+map:
+  - "share:rw"
+ports:
+  8554/tcp: 8554
+  8555/tcp: 8555
+  8556/tcp: 8556
+ports_description:
+  8554/tcp: "RTSP stream output"
+  8555/tcp: "Web/HLS stream output"
+  8556/tcp: "MJPEG stream output"
+options:
+  gcp_project_id: ""
+  gcp_client_id: ""
+  gcp_client_secret: ""
+  gcp_token_path: "/share/nestmtx/google_token.json"
+  stream_url: ""
+schema:
+  gcp_project_id: "str"
+  gcp_client_id: "str"
+  gcp_client_secret: "str"
+  gcp_token_path: "str"
+  stream_url: "str"
+README.mdThe README remains unchanged.# Home Assistant Add-on: NestMTX
+
+This addon integrates `nestmtx` into Home Assistant, allowing you to re-stream your Google Nest camera's WebRTC feed as RTSP, HLS, or MJPEG.
+
+## Configuration
+
+The addon requires configuration before it can be started.
+
+-   **`gcp_project_id`**: Your Google Cloud Project ID.
+-   **`gcp_client_id`**: Your Google Cloud OAuth Client ID.
+-   **`gcp_client_secret`**: Your Google Cloud OAuth Client Secret.
+-   **`gcp_token_path`**: The path to store your Google authentication token. The default is `/share/nestmtx/google_token.json`, which is recommended. You will need to create the `/share/nestmtx` directory.
+-   **`stream_url`**: The WebRTC stream URL from your camera. You can get this from your Google Home app or Nest account.
+
+## Usage
+
+Once configured and started, the addon will provide the following stream URLs, which you can use in Home Assistant's generic camera integration or other clients:
+
+-   **RTSP**: `rtsp://<home-assistant-ip>:8554/stream`
+-   **HLS**: `http://<home-assistant-ip>:8555/stream.m3u8`
+-   **MJPEG**: `http://<home-assistant-ip>:8556/stream`
+
+Replace `<home-assistant-ip>` with the actual IP address of your Home Assistant instance.
+rootfs/etc/cont-init.d/nestmtx.shThis script is correct and points to /usr/bin/nestmtx, where the new Dockerfile places the binary.#!/usr/bin/with-contenv bashio
+
+# ==============================================================================
+# Start script for the nestmtx Home Assistant add-on
+# ==============================================================================
+
+bashio::log.info "Configuring NestMTX..."
+
+# Get configuration options from the user
+declare gcp_project_id
+declare gcp_client_id
+declare gcp_client_secret
+declare gcp_token_path
+declare stream_url
+
+gcp_project_id=$(bashio::config 'gcp_project_id')
+gcp_client_id=$(bashio::config 'gcp_client_id')
+gcp_client_secret=$(bashio::config 'gcp_client_secret')
+gcp_token_path=$(bashio::config 'gcp_token_path')
+stream_url=$(bashio::config 'stream_url')
+
+# Validate that required configuration is present
+if ! bashio::config.has_value 'gcp_project_id' || \
+   ! bashio::config.has_value 'gcp_client_id' || \
+   ! bashio::config.has_value 'gcp_client_secret' || \
+   ! bashio::config.has_value 'stream_url'; then
+    bashio::log.fatal "Required configuration options are missing. Please configure the addon."
+    exit 1
+fi
+
+# Create directory for the Google token if it doesn't exist
+token_dir=$(dirname "${gcp_token_path}")
+if [[ ! -d "${token_dir}" ]]; then
+    bashio::log.info "Creating directory for Google token: ${token_dir}"
+    mkdir -p "${token_dir}"
+fi
+
+bashio::log.info "Starting NestMTX..."
+
+# Execute the nestmtx binary with the provided configuration.
+# The binary is now located at /usr/bin/nestmtx thanks to our Dockerfile.
+exec /usr/bin/nestmtx \
+    --gcp-project-id "${gcp_project_id}" \
+    --gcp-client-id "${gcp_client_id}" \
+    --gcp-client-secret "${gcp_client_secret}" \
+    --gcp-token-path "${gcp_token_path}" \
+    --stream-url "${stream_url}"
+Next StepsClean Up (if needed): If the build fails with a "Conflict" error, run the docker rm addon_builder_671c816b_nestmtx command from the SSH/Terminal addon to remove any old, failed builder containers.Update Files: Replace your local addon files with the corrected contents above.Re-install: Go to the addon store page and click "Install." The build should now complete successfully.

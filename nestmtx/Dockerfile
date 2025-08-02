@@ -1,20 +1,20 @@
 # This ARG is passed in by the Home Assistant build environment.
 ARG BUILD_FROM
-
-# Stage 1: Get the nestmtx binary from the official arm64 image
-FROM nestmtx/arm64:latest AS nestmtx
-
-# Stage 2: Build the final addon using the HA base image for aarch64
 FROM ${BUILD_FROM}
 
-# Copy the nestmtx binary from the first stage into our addon
-COPY --from=nestmtx /nestmtx /usr/bin/nestmtx
+# Install curl (for downloading), make the /usr/bin directory, and then clean up.
+# The RUN command is a single layer to keep the image smaller.
+RUN \
+    apk add --no-cache curl && \
+    echo "Downloading nestmtx binary..." && \
+    curl -L -o /usr/bin/nestmtx \
+    "https://github.com/alexbelgium/hassio-addons/releases/download/v1.2.0/nestmtx-arm64" && \
+    echo "Setting permissions..." && \
+    chmod a+x /usr/bin/nestmtx && \
+    apk del curl
 
-# Copy our custom rootfs directory into the addon
+# Copy our custom rootfs directory (which contains the startup script) into the addon.
 COPY rootfs/ /
 
-# Make the startup script executable
-RUN chmod a+x /etc/cont-init.d/nestmtx.sh
-
-# Set the command to run the S6 overlay init system
+# Set the command to run the S6 overlay init system.
 CMD [ "/init" ]
