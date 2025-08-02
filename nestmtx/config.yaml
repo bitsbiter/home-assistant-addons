@@ -1,12 +1,11 @@
 # Add-on configuration
 name: "NestMTX"
-version: "1.0.2"
+version: "1.0.3"
 slug: "nestmtx"
 description: "Serve Nest camera streams as RTSP, HLS, or MJPEG"
 url: "https://github.com/bitsbiter/home-assistant-addons/tree/main/nestmtx"
 arch:
   - aarch64
-  - amd64
 init: true
 map:
   - "share:rw"
