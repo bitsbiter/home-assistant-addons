@@ -1,0 +1,30 @@
+name: "NestMTX"
+version: "1.0.0"
+slug: "nestmtx"
+description: "Self-hosted UI and HLS output for Google Nest - TEST"
+startup: services
+boot: auto
+ingress: false
+panel_icon: mdi:video
+host_network: true
+
+options:
+  google_project_id: ""
+  client_id: ""
+  client_secret: ""
+  refresh_token: ""
+
+schema:
+  google_project_id: str
+  client_id: str
+  client_secret: str
+  refresh_token: str
+
+ports:
+  3000/tcp: 3000
+  8888/tcp: 8888
+
+map:
+  - config:rw
+
+image: ghcr.io/mrlt8/nestmtx:latest
