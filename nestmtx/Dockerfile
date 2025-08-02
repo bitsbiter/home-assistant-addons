@@ -1,18 +1,18 @@
-# Dockerfile for nestmtx Home Assistant Add-on
-ARG BUILD_FROM
+# Stage 1: Get the nestmtx binary from its official image
+FROM nestmtx/arm64:latest as nestmtx
+
+# Stage 2: Build the addon using the HA base image
+ARG BUILD_FROMghcr.io/home-assistant/aarch64-base:latest
 FROM ${BUILD_FROM}
 
-# Set shell
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# Copy the nestmtx binary from the first stage into our addon
+COPY --from=nestmtx /nestmtx /usr/bin/nestmtx
 
-# Set environment variables
-ENV LANG C.UTF-8
-
-# Copy rootfs contents, which includes our startup script
+# Copy our custom rootfs directory into the addon
 COPY rootfs/ /
 
 # Make the startup script executable
-RUN chmod +x /etc/cont-init.d/nestmtx.sh
+RUN chmod a+x /etc/cont-init.d/nestmtx.sh
 
-# Set the command to our custom startup script
+# Set the command to run the S6 overlay init system
 CMD [ "/init" ]

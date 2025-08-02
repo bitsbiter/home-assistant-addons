@@ -37,9 +37,9 @@ fi
 
 bashio::log.info "Starting NestMTX..."
 
-# Execute the nestmtx binary with the provided configuration
-# The binary is located at /nestmtx in the base image.
-exec /nestmtx \
+# Execute the nestmtx binary with the provided configuration.
+# The binary is now located at /usr/bin/nestmtx thanks to our Dockerfile.
+exec /usr/bin/nestmtx \
     --gcp-project-id "${gcp_project_id}" \
     --gcp-client-id "${gcp_client_id}" \
     --gcp-client-secret "${gcp_client_secret}" \
