@@ -2,7 +2,7 @@
 FROM nestmtx/arm64:latest as nestmtx
 
 # Stage 2: Build the addon using the HA base image
-ARG BUILD_FROMghcr.io/home-assistant/aarch64-base:latest
+ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
 # Copy the nestmtx binary from the first stage into our addon
