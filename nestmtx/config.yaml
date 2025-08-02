@@ -1,12 +1,17 @@
 name: "NestMTX"
 version: "1.0.0"
 slug: "nestmtx"
-description: "Self-hosted UI and HLS output for Google Nest - TEST"
+description: "Self-hosted UI and HLS output for Google Nest cam - TEST"
 startup: services
 boot: auto
 ingress: false
 panel_icon: mdi:video
 host_network: true
+
+arch:
+  - aarch64
+  - armv7
+  - amd64
 
 options:
   google_project_id: ""
@@ -27,4 +32,4 @@ ports:
 map:
   - config:rw
 
-image: ghcr.io/mrlt8/nestmtx:latest
+image: "ghcr.io/mrlt8/nestmtx"
