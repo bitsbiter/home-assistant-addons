@@ -1,5 +1,5 @@
 name: "NestMTX"
-version: "1.0.0"
+#version: "1.0.0"
 slug: "nestmtx"
 description: "Self-hosted UI and HLS output for Google Nest cam - TEST"
 startup: services
